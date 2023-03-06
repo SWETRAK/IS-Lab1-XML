@@ -18,4 +18,10 @@
       <Folder Include="Assets" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Assets\data.xml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

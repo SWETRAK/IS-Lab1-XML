@@ -5,40 +5,7 @@ namespace IS_Lab1_XML;
 
 public static class XMLReadWithDOMApproach
 {
-    
     public static void Read(string filepath)
-    {
-        // odczyt zawartości dokumentu
-        XmlDocument doc = new XmlDocument();
-        doc.Load(filepath);
-        string postac;
-        string sc;
-        int count = 0;
-        var drugs = doc.GetElementsByTagName("produktLeczniczy");
-        Dictionary<string, List<string>> iloscPostaci = new Dictionary<string, List<string>>();
-        foreach (XmlNode d in drugs)
-        {
-            postac = d.Attributes.GetNamedItem("postac").Value;
-            sc = d.Attributes.GetNamedItem("nazwaPowszechnieStosowana").Value;
-            if (postac == "Krem" && sc == "Mometasoni furoas")
-                count++;
-            if (iloscPostaci.ContainsKey(sc) && !iloscPostaci[sc].Contains(postac)) iloscPostaci[sc].Add(postac);
-            else
-            {
-                iloscPostaci[sc] = new List<string>();
-                iloscPostaci[sc].Add(postac);
-            }
-        }
-
-        int kilkaPostaci = 0;
-        foreach(var i in iloscPostaci)
-        {
-            if(i.Value.Count > 1) kilkaPostaci++;
-        }
-        Console.WriteLine("Liczba produktów leczniczych w postaci kremu, których jedyną substancją czynną jest Mometasoni furoas {0}", count);
-        Console.WriteLine("Preparatow o tej samej nazwie pod różną postacią jest: " + kilkaPostaci);
-    }
-    public static void Read1(string filepath)
     {
         var doc = new XmlDocument();
         doc.Load(filepath);
@@ -55,10 +22,7 @@ public static class XMLReadWithDOMApproach
                 count++;
         }
 
-        Console.WriteLine(
-            "Liczba produktów leczniczych w postaci kremu, których jedyną substancją czynną jest Mometasoni furoas {0}",
-            count);
-
+        Console.WriteLine("Liczba produktów leczniczych w postaci kremu, których jedyną substancją czynną jest Mometasoni furoas {0}", count);
     }
 
     public static void ReadAll(string filepath)
@@ -112,8 +76,7 @@ public static class XMLReadWithDOMApproach
             }
         }
 
-        Console.WriteLine(specyfiki.Count);
-        Console.WriteLine(specyfiki.Where(x => x.Postaci.Count > 1).ToList().Count);
+        Console.WriteLine("Specyfiki w które wsystępują w różnych formach: {0}", specyfiki.Where(x => x.Postaci.Count > 1).ToList().Count);
     }
 
     public static void ReadTabletkiKrem(string filepath)
@@ -172,6 +135,29 @@ public static class XMLReadWithDOMApproach
 
         Console.WriteLine(
             $"Firma robiaca najwiecej leków w tabletkach to {tabletka.Nazwa} : {tabletka.Tabletka}. \nFirma robiaca najwiecej leków w kremie to {krem.Nazwa} : {krem.Krem}");
+    }
+
+    public static void ReadMostKremy(string filepath)
+    {
+        var doc = new XmlDocument();
+        doc.Load(filepath);
+        var drugs = doc.GetElementsByTagName("produktLeczniczy");
+        var statPodmiotu = new Dictionary<string, int>();
+        foreach (XmlNode d in drugs)
+        {
+            var postac = d.Attributes.GetNamedItem("postac").Value;
+            var podmiot = d.Attributes.GetNamedItem("podmiotOdpowiedzialny").Value;
+            if (!statPodmiotu.ContainsKey(podmiot)) statPodmiotu[podmiot] = 0;
+            if (postac == "Krem") statPodmiotu[podmiot]++;
+        }
+
+        var maxKremow = statPodmiotu.OrderByDescending(x => x.Value);
+
+        Console.WriteLine("3 największych sprzedawców kremów: ");
+        for (var i = 0; i < 3; i++)
+        {
+            Console.WriteLine(i + ". " + maxKremow.ElementAt(i).Key + " " + maxKremow.ElementAt(i).Value);
+        }
     }
 }
 

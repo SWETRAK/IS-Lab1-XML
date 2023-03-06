@@ -15,12 +15,11 @@ public static class XMLReadWithSAXApproach
             IgnoreProcessingInstructions = true
         };
 
-
         var reader = XmlReader.Create(filepath, settings);
-        
+
         var count = 0;
         reader.MoveToContent();
-        
+
         while (reader.Read())
         {
             if (reader is { NodeType: XmlNodeType.Element, Name: "produktLeczniczy" })
@@ -32,12 +31,14 @@ public static class XMLReadWithSAXApproach
             }
         }
 
-        Console.WriteLine("Liczba produktów leczniczych w postaci kremu, których jedyną substancją czynną jest Mometasoni furoas {0} ", count);
+        Console.WriteLine(
+            "Liczba produktów leczniczych w postaci kremu, których jedyną substancją czynną jest Mometasoni furoas {0} ",
+            count);
     }
-    
+
     public static void ReadAll(string filepath)
     {
-        XmlReaderSettings settings = new XmlReaderSettings
+        var settings = new XmlReaderSettings
         {
             IgnoreComments = true,
             IgnoreWhitespace = true,
@@ -45,9 +46,9 @@ public static class XMLReadWithSAXApproach
         };
         var reader = XmlReader.Create(filepath, settings);
         reader.MoveToContent();
-        
+
         var specyfiki = new List<Specyfik>();
-        
+
         while (reader.Read())
         {
             if (reader is { NodeType: XmlNodeType.Element, Name: "produktLeczniczy" })
@@ -63,11 +64,14 @@ public static class XMLReadWithSAXApproach
                         specyfiki.Add(new Specyfik
                         {
                             Name = sc,
-                            Postaci = new List<Postac>() {new()
+                            Postaci = new List<Postac>()
                             {
-                                Nazwa = postac,
-                                Ilosc = 1,
-                            }}
+                                new()
+                                {
+                                    Nazwa = postac,
+                                    Ilosc = 1,
+                                }
+                            }
                         });
                     }
                     else
@@ -89,11 +93,10 @@ public static class XMLReadWithSAXApproach
                 }
             }
         }
-        
-        Console.WriteLine(specyfiki.Count);
-        Console.WriteLine(specyfiki.Where(x => x.Postaci.Count > 1).ToList().Count);
+
+        Console.WriteLine("Specyfiki w które wsystępują w różnych formach: {0}", specyfiki.Where(x => x.Postaci.Count > 1).ToList().Count);
     }
-    
+
     public static void ReadTabletkiKrem(string filepath)
     {
         var settings = new XmlReaderSettings
@@ -116,8 +119,8 @@ public static class XMLReadWithSAXApproach
                 var postac = reader.GetAttribute("postac");
 
                 var element = podmioty.FirstOrDefault(x => x.Nazwa == podmiot);
-                
-                if (element is null) 
+
+                if (element is null)
                 {
                     if (postac == "Krem")
                     {
@@ -127,7 +130,7 @@ public static class XMLReadWithSAXApproach
                             Krem = 1,
                             Tabletka = 0,
                         });
-                    } 
+                    }
                     else if (postac == "Tabletki")
                     {
                         podmioty.Add(new Producent
@@ -135,7 +138,7 @@ public static class XMLReadWithSAXApproach
                             Nazwa = podmiot,
                             Krem = 0,
                             Tabletka = 1
-                        });    
+                        });
                     }
                 }
                 else
@@ -143,13 +146,12 @@ public static class XMLReadWithSAXApproach
                     if (postac == "Krem")
                     {
                         element.Krem++;
-                    } 
-                    else if (postac == "Tabletki" )
+                    }
+                    else if (postac == "Tabletki")
                     {
                         element.Tabletka++;
                     }
                 }
-
             }
         }
 
@@ -157,7 +159,42 @@ public static class XMLReadWithSAXApproach
         var tabletka = podmioty[0];
         podmioty.Sort((x1, x2) => -SortingFunction.Sort(x1.Krem, x2.Krem));
         var krem = podmioty[0];
-        
-        Console.WriteLine($"Firma robiaca najwiecej leków w tabletkach to {tabletka.Nazwa} : {tabletka.Tabletka}. \nFirma robiaca najwiecej leków w kremie to {krem.Nazwa} : {krem.Krem}");
+
+        Console.WriteLine(
+            $"Firma robiaca najwiecej leków w tabletkach to {tabletka.Nazwa} : {tabletka.Tabletka}. \nFirma robiaca najwiecej leków w kremie to {krem.Nazwa} : {krem.Krem}");
+    }
+
+    public static void ReadMostKremy(string filepath)
+    {
+        var settings = new XmlReaderSettings
+        {
+            IgnoreComments = true,
+            IgnoreProcessingInstructions = true,
+            IgnoreWhitespace = true,
+        };
+
+        var reader = XmlReader.Create(filepath, settings);
+
+        var statPodmiotu = new Dictionary<string, int>();
+
+        while (reader.Read())
+        {
+            if (reader.NodeType == XmlNodeType.Element && reader.Name
+                == "produktLeczniczy")
+            {
+                var postac = reader.GetAttribute("postac");
+                var podmiot = reader.GetAttribute("podmiotOdpowiedzialny");
+                if (!statPodmiotu.ContainsKey(podmiot)) statPodmiotu[podmiot] = 0;
+                if (postac == "Krem") statPodmiotu[podmiot]++;
+            }
+        }
+
+        var maxKremow = statPodmiotu.OrderByDescending(x => x.Value);
+
+        Console.WriteLine("3 największych sprzedawców kremów: ");
+        for (var i = 0; i < 3; i++)
+        {
+            Console.WriteLine(i + ". " + maxKremow.ElementAt(i).Key + " " + maxKremow.ElementAt(i).Value);
+        }
     }
 }
